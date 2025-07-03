@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.riakol.bulletinboard.databinding.ActivityMainBinding
 import com.riakol.bulletinboard.dialogHelper.DialogConst
 import com.riakol.bulletinboard.dialogHelper.DialogHelper
@@ -30,6 +31,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         init()
     }
 
+    override fun onStart() {
+        super.onStart()
+        uiUpdate(mAuth.currentUser)
+    }
+
     private fun init() {
 
         with(binding) {
@@ -43,6 +49,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             drawerLayout.addDrawerListener(toggle)
             toggle.syncState()
             navView.setNavigationItemSelectedListener(this@MainActivity)
+            tvAccount = navView.getHeaderView(0).findViewById(R.id.tvAccountEmail)
         }
 
     }
@@ -59,10 +66,18 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
              R.id.id_sing_in -> {
                  dialogHelper.createSignDialog(DialogConst.SIGN_IN_STATE)
              }
+             R.id.id_sing_out -> {
+                 uiUpdate(null)
+                 mAuth.signOut()
+             }
 
         }
 
         binding.drawerLayout.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    fun uiUpdate(user: FirebaseUser?) {
+        tvAccount.text = if (user == null) resources.getString(R.string.not_reg) else user.email
     }
 }
