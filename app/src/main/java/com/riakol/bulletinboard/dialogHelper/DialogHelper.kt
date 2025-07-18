@@ -1,16 +1,28 @@
 package com.riakol.bulletinboard.dialogHelper
 
 import android.app.AlertDialog
+import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialException
+import androidx.lifecycle.lifecycleScope
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.riakol.bulletinboard.MainActivity
 import com.riakol.bulletinboard.R
 import com.riakol.bulletinboard.accountHelper.AccountHelper
 import com.riakol.bulletinboard.databinding.SignDialogBinding
+import kotlinx.coroutines.launch
 
 class DialogHelper(act: MainActivity) {
     private val activity = act
     private val accHelper = AccountHelper(activity)
+    private val WEB_CLIENT_ID = "792839367465-i2da82aemf1tpgodfmees3rna1km98sd.apps.googleusercontent.com"
 
     fun createSignDialog(index: Int) {
         val builder = AlertDialog.Builder(activity)
@@ -20,6 +32,11 @@ class DialogHelper(act: MainActivity) {
 
         val dialog = builder.create()
 
+        rootDialogElement.btnGoogleSignIn.setOnClickListener {
+            launchSignIn()
+            dialog.dismiss()
+        }
+
         rootDialogElement.btnSignUpIn.setOnClickListener {
             setOnClickSignUpIn(index, rootDialogElement, dialog)
         }
@@ -28,6 +45,53 @@ class DialogHelper(act: MainActivity) {
         }
 
         dialog.show()
+    }
+
+    private fun launchSignIn() {
+        val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(WEB_CLIENT_ID)
+            .build()
+
+        val request: GetCredentialRequest = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        activity.lifecycleScope.launch {
+            try {
+                val credentialManager = CredentialManager.create(activity)
+                val result = credentialManager.getCredential(
+                    request = request,
+                    context = activity,
+                )
+                handleSignIn(result)
+            } catch (e: GetCredentialException) {
+                Log.e("DialogHelper", "GetCredentialException: ", e)
+            }
+        }
+    }
+
+    private fun handleSignIn(result: GetCredentialResponse) {
+        val credential = result.credential
+        when (credential) {
+            is CustomCredential -> {
+                if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                    try {
+                        val googleIdTokenCredential = GoogleIdTokenCredential
+                            .createFrom(credential.data)
+                        // Передаем учетные данные в AccountHelper для входа в Firebase
+                        accHelper.signInWithGoogleCredential(googleIdTokenCredential)
+                    } catch (e: GoogleIdTokenParsingException) {
+                        Log.e("DialogHelper", "Received an invalid google id token response", e)
+                    }
+                } else {
+                    Log.e("DialogHelper", "Unexpected type of custom credential")
+                }
+            }
+            else -> {
+                Log.e("DialogHelper", "Unexpected type of credential")
+            }
+        }
     }
 
     private fun setOnClickResetPassword(
@@ -78,6 +142,7 @@ class DialogHelper(act: MainActivity) {
             rootDialogElement.tvSignTitle.text = activity.resources.getString(R.string.aс_sing_in)
             rootDialogElement.btnSignUpIn.text = activity.resources.getString(R.string.sign_in_action)
             rootDialogElement.btnForgetPass.visibility = View.VISIBLE
+            rootDialogElement.btnGoogleSignIn.visibility = View.VISIBLE
         }
     }
 }

@@ -48,9 +48,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
         android:text="@string/sign_up_action"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/edSignEmail"
         app:layout_constraintStart_toStartOf="@+id/edSignEmail"
         app:layout_constraintTop_toBottomOf="@+id/edSignPassword" />
@@ -63,9 +61,19 @@
         android:text="@string/forget_password"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/edSignEmail"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/edSignEmail"
         app:layout_constraintTop_toBottomOf="@+id/btnSignUpIn" />
+
+    <Button
+        android:id="@+id/btnGoogleSignIn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/sign_in_with_google"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@+id/edSignEmail"
+        app:layout_constraintStart_toStartOf="@+id/edSignEmail"
+        app:layout_constraintTop_toBottomOf="@+id/btnForgetPass" />
 
     <TextView
         android:id="@+id/tvDialogMessage"
@@ -79,4 +87,5 @@
         app:layout_constraintEnd_toEndOf="@+id/edSignEmail"
         app:layout_constraintStart_toStartOf="@+id/edSignEmail"
         app:layout_constraintTop_toBottomOf="@+id/tvSignTitle" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

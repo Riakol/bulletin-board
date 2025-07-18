@@ -1,7 +1,11 @@
 package com.riakol.bulletinboard.accountHelper
 
 import android.widget.Toast
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.riakol.bulletinboard.MainActivity
 import com.riakol.bulletinboard.R
 
@@ -35,6 +39,21 @@ class AccountHelper(act: MainActivity) {
                     }
                 }
         }
+    }
+
+    fun signInWithGoogleCredential(credential: GoogleIdTokenCredential) {
+        // Создаем учетные данные для Firebase из Google ID токена
+        val firebaseCredential = GoogleAuthProvider.getCredential(credential.idToken, null)
+
+        activity.mAuth.signInWithCredential(firebaseCredential)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // 3. Обновляем UI в случае успеха
+                    activity.uiUpdate(task.result?.user)
+                } else {
+                    Toast.makeText(activity, activity.resources.getString(R.string.sign_in_error), Toast.LENGTH_LONG).show()
+                }
+            }
     }
 
     private fun sendEmailVerification(user: FirebaseUser) {
